@@ -13,6 +13,7 @@ import os.path
 
 error_occurred = False
 error_count = 0
+restart = False
 
 def err(message):
     global error_occurred
@@ -32,8 +33,6 @@ def restart_cmd():
 if "--bat-launch" not in sys.argv:
     print('Please run the script using start.bat')
     sys.exit(1)
-
-restart = False
 
 try:
     import cuda
