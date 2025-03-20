@@ -51,12 +51,20 @@ except:
 try:
     from tqdm import tqdm
 except:
+    print('Installing tqdm module')
     os.system('pip install tqdm')
+    restart = True
+
+try:
+    import tkinter as tk
+    from tkinter import filedialog
+except:
+    print('Installing tkinter module')
+    os.system('pip install tkinter')
     restart = True
 
 if restart:
     restart_cmd()
-
 
 def check_python_version(target_version="3.10.5"):
     current_version = ".".join(map(str, sys.version_info[:3]))
@@ -86,7 +94,6 @@ def installCudaToolkit():
     download_link = 'https://developer.download.nvidia.com/compute/cuda/12.6.0/local_installers/cuda_12.6.0_560.76_windows.exe' # 'https://developer.download.nvidia.com/compute/cuda/12.5.0/local_installers/cuda_12.5.0_555.85_windows.exe'
     file_path = 'cuda_12.6.0_560.76_windows.exe' #"cuda_12.5.0_555.85_windows.exe"
 
-    
     try:
         response = requests.get(download_link, stream=True, timeout=30)
         response.raise_for_status()
@@ -119,8 +126,30 @@ def installCudaToolkit():
 
         restart = True
     except subprocess.CalledProcessError as e:
-        f.write(f'Failed to install Cuda Toolkit due to: {e}')
         err(f'Failed to install Cuda Toolkit due to: {e}')
+
+def convert_model():
+    root = tk.Tk()
+    root.withdraw()
+    model_path = filedialog.askopenfilename(title="Select YOLO model", filetypes=[("YOLO Model Files", "*.pt;*.onnx")])
+
+    if not model_path:
+        err('No model selected. Exiting...')
+        return
+
+    model_name = os.path.basename(model_path)
+    model_format = model_name.split('.')[-1]
+
+    if model_format not in ["pt", "onnx"]:
+        err('Invalid model format. Only .pt and .onnx are supported.')
+        return
+
+    print(f'Converting {model_name} to TensorRT engine format...')
+    try:
+        subprocess.run(["yolo", "export", f"model={model_path}", "format=engine", "imgsz=640"], check=True)
+        print('Model successfully converted to engine!')
+    except subprocess.CalledProcessError:
+        err('Model conversion failed.')
 
 
 if not check_python_version("3.10.5"):
@@ -158,7 +187,6 @@ try:
     os.system('pip uninstall -y torch torchvision torchaudio')
 except:
     err('Failed to uninstall torch')
-
 try:
     print('Installing torch. This may take some time..')
     os.system('pip3 install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu126 --timeout=0')
@@ -182,6 +210,12 @@ try:
     os.system('pip install -r requirements.txt --no-cache-dir')
 except:
     err('Failed to install requirements')
+
+choice = input('Do you want to convert your model to TensorRT engine format? (y/n): ').strip().lower()
+if choice == 'y':
+    convert_model()
+else:
+    print('Skipping model conversion.')
 
 if not error_occurred:
     print('done!')
