@@ -1,5 +1,5 @@
 # lunar-installer
-Installs everything needed to run Lunar V2 with TensorRT
+Installs everything needed to run [Lunar V2](https://gannonr.com/lunar) with TensorRT
 
 # Usage
 1. Make sure you have [Python 3.10.5](https://www.python.org/ftp/python/3.10.5/python-3.10.5-amd64.exe) and that it is added to PATH
